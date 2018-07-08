@@ -18,14 +18,15 @@ class MoverEmail:
         imap_conn = imaplib.IMAP4_SSL(host='mail.bennercloud.com.br')
         status, msg = imap_conn.login(self.email, self.senha)
 
-        if status != 'OK':
-            return self._sair_graciosamente(status, msg)
+        if self._precisa_sair_graciosamente(status, msg):
+            return
 
         for regra in models.Regra.objects.filter(email_id__exact=self.email_id):
             status, msg = imap_conn.select(mailbox=regra.pasta_pesquisar)
             print("Retorno pesquisar {0}: '{1}' '{2}'".format(regra.pasta_pesquisar, status, msg))
-            if status != 'OK':
-                return self._sair_graciosamente(status, msg)
+
+            if self._precisa_sair_graciosamente(status, msg):
+                return
 
             itens_regra = models.ItemRegra.objects.filter(regra_id__exact=regra.id)
 
@@ -41,16 +42,19 @@ class MoverEmail:
                 for email_id in lista_emails:
                     status, msg = imap_conn.copy(email_id, regra.pasta_destino)
 
-                    if status == 'OK':
+                    if not self._precisa_sair_graciosamente(status, msg):
                         imap_conn.store(email_id, '+FLAGS', '\\Deleted')
                         imap_conn.expunge()
                         print("Movido email {0} de {1} para {2}".format(email_id, regra.pasta_pesquisar,
                                                                         regra.pasta_destino))
 
     @staticmethod
-    def _sair_graciosamente(status, msg):
-        print("Status '{0}' não OK, saindo.\r\nmensagem: {1}".format(status, msg))
+    def _precisa_sair_graciosamente(status, msg):
+        if status != 'OK':
+            print("Status '{0}' não OK, saindo.\r\nmensagem: {1}".format(status, msg))
+            return True
 
+        return False
 
 def mover_email():
     emails = models.Email.objects.all()
