@@ -1,7 +1,6 @@
 import imaplib
 import django
 import os
-from apscheduler.schedulers.blocking import BlockingScheduler
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "LPFX.settings")
 django.setup()
@@ -15,10 +14,6 @@ class MoverEmail:
         self.senha = email.senha
         self.email_id = email.id
 
-    def _item_regra(self, item_regra_id):
-        item_regra = models.ItemRegra.objects.get(id=item_regra_id)
-        return '{0} "{1}"'.format(item_regra.validacao, item_regra.conteudo)
-
     def processar(self):
         imap_conn = imaplib.IMAP4_SSL(host='mail.bennercloud.com.br')
         status, msg = imap_conn.login(self.email, self.senha)
@@ -27,13 +22,18 @@ class MoverEmail:
             return self._sair_graciosamente(status, msg)
 
         for regra in models.Regra.objects.filter(email_id__exact=self.email_id):
-            imap_conn.select(mailbox=regra.pasta_pesquisar)
+            status, msg = imap_conn.select(mailbox=regra.pasta_pesquisar)
+            print("Retorno pesquisar {0}: '{1}' '{2}'".format(regra.pasta_pesquisar, status, msg))
+            if status != 'OK':
+                return self._sair_graciosamente(status, msg)
+
             itens_regra = models.ItemRegra.objects.filter(regra_id__exact=regra.id)
 
             if itens_regra.count() > 0:
-                regra_lista = [self._item_regra(item_regra.id) for item_regra in
-                               models.ItemRegra.objects.filter(regra_id__exact=regra.id)]
-                status, lista_emails = imap_conn.search(None, 'UNSEEN {0}'.format(' '.join(regra_lista)))
+                regra_str = ' '.join([str(item_regra) for item_regra in
+                                      models.ItemRegra.objects.filter(regra_id__exact=regra.id)])
+                print("Pesquisando: UNSEEN {0}".format(regra_str))
+                status, lista_emails = imap_conn.search(None, 'UNSEEN {0}'.format(regra_str))
                 lista_emails = [email for email in lista_emails if email != b'']
 
                 for email_id in lista_emails:
@@ -42,20 +42,20 @@ class MoverEmail:
                     if status == 'OK':
                         imap_conn.store(email_id, '+FLAGS', '\\Deleted')
                         imap_conn.expunge()
+                        print("Movido email {0} de {1} para {2}".format(email_id, regra.pasta_pesquisar,
+                                                                        regra.pasta_destino))
 
     @staticmethod
     def _sair_graciosamente(status, msg):
         print("Status '{0}' não OK, saindo.\r\nmensagem: {1}".format(status, msg))
 
 
-sched = BlockingScheduler()
-
-
-@sched.scheduled_job('interval', minutes=1)
 def mover_email():
     emails = models.Email.objects.all()
     for email in emails:
         cop = MoverEmail(email)
         cop.processar()
 
-sched.start()
+
+if __name__ == '__main__':
+    mover_email()

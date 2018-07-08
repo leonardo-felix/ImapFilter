@@ -36,7 +36,7 @@ class ItemRegra(models.Model):
     conteudo = models.CharField(max_length=250)
 
     def __str__(self):
-        return "{0} *{1}*".format(self.validacao, self.conteudo)
+        return '{0} "{1}"'.format(self.validacao, self.conteudo)
 
 
 class RegraInline(admin.TabularInline):
