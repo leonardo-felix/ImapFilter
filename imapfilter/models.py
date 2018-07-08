@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib import admin
 
 class Email(models.Model):
     descricao = models.CharField(max_length=20)
@@ -9,11 +9,20 @@ class Email(models.Model):
     def __str__(self):
         return self.descricao
 
+@admin.register(Email)
+class EmailAdmin(admin.ModelAdmin):
+    pass
+
 
 class Regra(models.Model):
     email_id = models.ForeignKey(Email, on_delete=models.CASCADE)
     pasta_pesquisar = models.CharField(max_length=250, default='INBOX')
     pasta_destino = models.CharField(max_length=250)
+
+
+@admin.register(Regra)
+class RegraAdmin(admin.ModelAdmin):
+    pass
 
 
 class ItemRegra(models.Model):
@@ -32,7 +41,9 @@ class ItemRegra(models.Model):
     conteudo = models.CharField(max_length=250)
 
 
-
+@admin.register(ItemRegra)
+class ItemRegraAdmin(admin.ModelAdmin):
+    pass
 
 
 
