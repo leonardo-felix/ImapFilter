@@ -36,6 +36,8 @@ class MoverEmail:
                 status, lista_emails = imap_conn.search(None, 'UNSEEN {0}'.format(regra_str))
                 lista_emails = [email for email in lista_emails if email != b'']
 
+                print("Existe(m) {0} email a ser movido pela regra {1}".format(len(lista_emails), regra))
+
                 for email_id in lista_emails:
                     status, msg = imap_conn.copy(email_id, regra.pasta_destino)
 
