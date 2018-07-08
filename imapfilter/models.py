@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib import admin
 
+
 class Email(models.Model):
     descricao = models.CharField(max_length=20)
     email = models.CharField(max_length=250)
@@ -8,10 +9,6 @@ class Email(models.Model):
 
     def __str__(self):
         return self.descricao
-
-@admin.register(Email)
-class EmailAdmin(admin.ModelAdmin):
-    pass
 
 
 class Regra(models.Model):
@@ -21,11 +18,6 @@ class Regra(models.Model):
 
     def __str__(self):
         return "de {0} para {1}".format(self.pasta_pesquisar, self.pasta_destino)
-
-
-@admin.register(Regra)
-class RegraAdmin(admin.ModelAdmin):
-    pass
 
 
 class ItemRegra(models.Model):
@@ -45,6 +37,28 @@ class ItemRegra(models.Model):
 
     def __str__(self):
         return "{0} *{1}*".format(self.validacao, self.conteudo)
+
+
+class RegraInline(admin.TabularInline):
+    model = Regra
+
+
+class ItemRegraInline(admin.TabularInline):
+    model = ItemRegra
+
+
+@admin.register(Email)
+class EmailAdmin(admin.ModelAdmin):
+    inlines = [
+        RegraInline
+    ]
+
+
+@admin.register(Regra)
+class RegraAdmin(admin.ModelAdmin):
+    inlines = [
+        ItemRegraInline
+    ]
 
 
 @admin.register(ItemRegra)
