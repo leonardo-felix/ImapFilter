@@ -48,13 +48,6 @@ class MoverEmail:
         print("Status '{0}' não OK, saindo.\r\nmensagem: {1}".format(status, msg))
 
 
-
-
-
-
-
-
-
 sched = BlockingScheduler()
 
 
@@ -64,6 +57,5 @@ def mover_email():
     for email in emails:
         cop = MoverEmail(email)
         cop.processar()
-
 
 sched.start()
