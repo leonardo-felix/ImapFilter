@@ -31,10 +31,12 @@ class MoverEmail:
             itens_regra = models.ItemRegra.objects.filter(regra_id__exact=regra.id)
 
             if itens_regra.count() > 0:
-                regra_str = ' '.join([str(item_regra) for item_regra in
-                                      models.ItemRegra.objects.filter(regra_id__exact=regra.id)])
-                print("Pesquisando: UNSEEN {0}".format(regra_str))
-                status, lista_emails = imap_conn.search(None, 'UNSEEN {0}'.format(regra_str))
+                regra_lista = [str(item_regra) for item_regra in
+                               models.ItemRegra.objects.filter(regra_id__exact=regra.id)]
+                regra_lista = (['OR'] * (len(regra_lista)-1) + regra_lista)
+                regra_str = ' '.join(regra_lista)
+                print("Pesquisando: ({0} UNSEEN )".format(regra_str))
+                status, lista_emails = imap_conn.search(None, '({0} UNSEEN )'.format(regra_str))
                 lista_emails = [email for email in lista_emails if email != b'']
 
                 print("Existe(m) {0} email a ser movido pela regra {1}".format(len(lista_emails), regra))
