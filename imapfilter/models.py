@@ -2,6 +2,15 @@ from django.db import models
 from django.contrib import admin
 
 
+class ServidorImap(models.Model):
+    descricao = models.CharField(max_length=50)
+    host = models.CharField(max_length=250)
+    porta = models.IntegerField()
+
+    def __str__(self):
+        return self.descricao
+
+
 class Email(models.Model):
     descricao = models.CharField(max_length=20)
     email = models.CharField(max_length=250)

@@ -15,7 +15,7 @@ class MoverEmail:
         self.email_id = email.id
 
     def processar(self):
-        imap_conn = imaplib.IMAP4_SSL(host='mail.bennercloud.com.br')
+        imap_conn = imaplib.IMAP4_SSL(host=os.environ['HOST_IMAP'])
         status, msg = imap_conn.login(self.email, self.senha)
 
         if self._precisa_sair_graciosamente(status, msg):
@@ -57,6 +57,7 @@ class MoverEmail:
             return True
 
         return False
+
 
 def mover_email():
     emails = models.Email.objects.all()
