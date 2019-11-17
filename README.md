@@ -1,4 +1,4 @@
 # ImapFilter
-Filtra e-mails com nos endereços e move para pastas definidas
+Filtra e-mails a partir de filtros e move para pastas definidas
 
 
